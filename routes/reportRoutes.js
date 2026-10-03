@@ -3,6 +3,34 @@ const router = express.Router();
 const Report = require('../models/Report');
 const authMiddleware = require('../middleware/auth');
 
+// ✅ POST /api/reports - Create/Submit a new report
+router.post('/', async (req, res) => {
+  try {
+    const { category, description, location, imageUrl } = req.body;
+
+    if (!description) {
+      return res.status(400).json({ message: 'Description is required' });
+    }
+
+    // Auto-generate a title if one wasn't provided by the frontend
+    const title = req.body.title || `${category} Report - ${new Date().toLocaleDateString()}`;
+
+    const newReport = new Report({
+      title,
+      description,
+      category,
+      location,
+      image: imageUrl, // map imageUrl to image if needed
+    });
+
+    const savedReport = await newReport.save();
+    res.status(201).json(savedReport);
+  } catch (err) {
+    console.error('Error creating report:', err);
+    res.status(400).json({ message: 'Error creating report', error: err.message });
+  }
+});
+
 // GET /api/reports - Fetch all reports
 router.get('/', async (req, res) => {
   try {
